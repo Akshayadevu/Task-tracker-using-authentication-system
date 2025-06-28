@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head><title>Task Tracker</title></head>
+<body>
+  <h1>Login</h1>
+  <input id="email" placeholder="Email"><br>
+  <input id="password" type="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+  <br><br>
+  <h2>Tasks</h2>
+  <input id="task" placeholder="Task Title">
+  <button onclick="addTask()">Add</button>
+  <ul id="taskList"></ul>
+
+  <script>
+    let token = "";
+
+    async function login() {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: document.getElementById("email").value,
+          password: document.getElementById("password").value,
+        }),
+      });
+      const data = await res.json();
+      token = data.token;
+      loadTasks();
+    }
+
+    async function addTask() {
+      await fetch("http://localhost:5000/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-auth-token": token,
+        },
+        body: JSON.stringify({ title: document.getElementById("task").value, completed: false }),
+      });
+      loadTasks();
+    }
+
+    async function loadTasks() {
+      const res = await fetch("http://localhost:5000/api/tasks", {
+        headers: { "x-auth-token": token },
+      });
+      const tasks = await res.json();
+      document.getElementById("taskList").innerHTML =
+        tasks.map(t => `<li>${t.title}</li>`).join("");
+    }
+  </script>
+</body>
+</html>
+<!-- End of file: front/index.html -->
